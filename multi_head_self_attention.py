@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 
 class MultiHeadSelfAttention(nn.Module):
@@ -15,7 +16,8 @@ class MultiHeadSelfAttention(nn.Module):
         self.to_v = nn.Linear(hidden_dim, hidden_dim)        
         self.to_o = nn.Linear(hidden_dim, hidden_dim)    
         
-        self.dropout = nn.Dropout(dropout_rate)
+        self.dropout_1 = nn.Dropout(dropout_rate)
+        self.dropout_2 = nn.Dropout(dropout_rate)
         
         
     def forward(self, x, attn_mask=None):
@@ -30,12 +32,13 @@ class MultiHeadSelfAttention(nn.Module):
         if attn_mask is not None:
             attn_prob = attn_prob.masked_fill(attn_mask==0, -1e9)
             
-        attn_prob = torch.softmax(attn_prob, dim=-1)
-        attn_prob = self.dropout(attn_prob)
+        attn_prob = F.softmax(attn_prob, dim=-1)
+        attn_prob = self.dropout_1(attn_prob)
         
         attn_out = attn_prob @ v
         
-        attn_out = self.to_o(attn_out)
         attn_out = attn_out.reshape(batch_size, seq_len, dim_num)
+        attn_out = self.to_o(attn_out)
+        attn_out = self.dropout_2(attn_out)
         
         return attn_out
