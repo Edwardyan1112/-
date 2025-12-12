@@ -5,6 +5,7 @@ import torch.nn.functional as F
 
 class MultiHeadSelfAttention(nn.Module):
     def __init__(self, hidden_dim, head_num, dropout_rate):
+        super().__init__()
         self.hidden_dim = hidden_dim
         self.head_num = head_num
         self.d_k = self.hidden_dim // self.head_num
@@ -37,7 +38,7 @@ class MultiHeadSelfAttention(nn.Module):
         
         attn_out = attn_prob @ v
         
-        attn_out = attn_out.reshape(batch_size, seq_len, dim_num)
+        attn_out = attn_out.transpose(1, 2).reshape(batch_size, seq_len, dim_num)
         attn_out = self.to_o(attn_out)
         attn_out = self.dropout_2(attn_out)
         
